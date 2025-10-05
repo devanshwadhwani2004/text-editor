@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const counter = document.getElementById("counter");
   const darkModeBtn = document.getElementById("darkModeBtn");
   const downloadBtn = document.getElementById("downloadBtn");
+  const replaceBtn = document.getElementById("replaceBtn");
+  const toggleWrapBtn = document.getElementById("toggleWrapBtn");
 
   // Formatting buttons
   const buttons = [
@@ -39,6 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
         case "resetBtn":
           text.innerHTML = "";
           updateCounts();
+          localStorage.removeItem("editor-content"); // clear autosave
           break;
       }
     });
@@ -49,10 +52,19 @@ document.addEventListener("DOMContentLoaded", function () {
     const content = text.innerText.trim();
     const words = content.length ? content.split(/\s+/).length : 0;
     const chars = content.length;
-    counter.textContent = Words: ${words} | Characters: ${chars};
+    counter.textContent = `Words: ${words} | Characters: ${chars}`;
   }
 
-  text.addEventListener("input", updateCounts);
+  text.addEventListener("input", () => {
+    updateCounts();
+    // 💾 Autosave to Local Storage
+    localStorage.setItem("editor-content", text.innerHTML);
+  });
+
+  // Load autosaved content on page load
+  const saved = localStorage.getItem("editor-content");
+  if (saved) text.innerHTML = saved;
+
   updateCounts();
 
   // 🌙 Dark Mode Toggle
@@ -69,4 +81,26 @@ document.addEventListener("DOMContentLoaded", function () {
     link.download = "text-editor-content.txt";
     link.click();
   });
+
+  // 🔍 Find & Replace
+  if (replaceBtn) {
+    replaceBtn.addEventListener("click", function () {
+      const find = document.getElementById("findText").value;
+      const replace = document.getElementById("replaceText").value;
+      if (!find) return;
+      const updated = text.innerHTML.split(find).join(replace);
+      text.innerHTML = updated;
+      localStorage.setItem("editor-content", updated); // update autosave
+      updateCounts();
+    });
+  }
+
+  // 🔠 Toggle Word Wrap
+  let wrapEnabled = true;
+  if (toggleWrapBtn) {
+    toggleWrapBtn.addEventListener("click", function () {
+      wrapEnabled = !wrapEnabled;
+      text.style.whiteSpace = wrapEnabled ? "pre-wrap" : "pre";
+    });
+  }
 });
