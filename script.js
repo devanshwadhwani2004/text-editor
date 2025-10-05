@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const content = text.innerText.trim();
     const words = content.length ? content.split(/\s+/).length : 0;
     const chars = content.length;
-    counter.textContent = Words: ${words} | Characters: ${chars};
+    counter.textContent = `Words: ${words} | Characters: ${chars}`;
   }
 
   text.addEventListener("input", updateCounts);
