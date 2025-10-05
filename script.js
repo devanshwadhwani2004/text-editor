@@ -3,6 +3,14 @@ document.addEventListener("DOMContentLoaded", function () {
   const counter = document.getElementById("counter");
   const darkModeBtn = document.getElementById("darkModeBtn");
   const downloadBtn = document.getElementById("downloadBtn");
+  const toggleWrapBtn = document.getElementById("toggleWrapBtn");
+
+  // Find & Replace elements
+  const findInput = document.getElementById("findInput");
+  const replaceInput = document.getElementById("replaceInput");
+  const findBtn = document.getElementById("findBtn");
+  const replaceBtn = document.getElementById("replaceBtn");
+  const replaceAllBtn = document.getElementById("replaceAllBtn");
 
   // Formatting buttons
   const buttons = [
@@ -12,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "copyBtn", "resetBtn"
   ];
 
+  // Add event listeners for formatting buttons
   buttons.forEach(id => {
     const btn = document.getElementById(id);
     if (!btn) return;
@@ -39,6 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
         case "resetBtn":
           text.innerHTML = "";
           updateCounts();
+          localStorage.removeItem("autosaveContent");
           break;
       }
     });
@@ -49,10 +59,14 @@ document.addEventListener("DOMContentLoaded", function () {
     const content = text.innerText.trim();
     const words = content.length ? content.split(/\s+/).length : 0;
     const chars = content.length;
-    counter.textContent = Words: ${words} | Characters: ${chars};
+    counter.textContent = `Words: ${words} | Characters: ${chars}`;
   }
 
-  text.addEventListener("input", updateCounts);
+  text.addEventListener("input", () => {
+    updateCounts();
+    autosave();
+  });
+
   updateCounts();
 
   // 🌙 Dark Mode Toggle
@@ -69,4 +83,74 @@ document.addEventListener("DOMContentLoaded", function () {
     link.download = "text-editor-content.txt";
     link.click();
   });
+
+  // 🔟 Autosave in Local Storage
+  function autosave() {
+    localStorage.setItem("autosaveContent", text.innerHTML);
+  }
+
+  function loadAutosave() {
+    const saved = localStorage.getItem("autosaveContent");
+    if (saved) {
+      text.innerHTML = saved;
+      updateCounts();
+    }
+  }
+
+  loadAutosave();
+
+  // 🔍 11. Find & Replace
+  findBtn.addEventListener("click", function () {
+    clearHighlights();
+    const findText = findInput.value.trim();
+    if (!findText) return;
+
+    const content = text.innerHTML;
+    const regex = new RegExp(findText, "gi");
+    const highlighted = content.replace(regex, match => `<mark>${match}</mark>`);
+    text.innerHTML = highlighted;
+  });
+
+  replaceBtn.addEventListener("click", function () {
+    const findText = findInput.value.trim();
+    const replaceText = replaceInput.value;
+    if (!findText) return;
+
+    const regex = new RegExp(findText, "");
+    text.innerText = text.innerText.replace(regex, replaceText);
+    autosave();
+    updateCounts();
+  });
+
+  replaceAllBtn.addEventListener("click", function () {
+    const findText = findInput.value.trim();
+    const replaceText = replaceInput.value;
+    if (!findText) return;
+
+    const regex = new RegExp(findText, "g");
+    text.innerText = text.innerText.replace(regex, replaceText);
+    autosave();
+    updateCounts();
+  });
+
+  // 🧹 Helper: clear previous highlights
+  function clearHighlights() {
+    text.innerHTML = text.innerHTML.replace(/<mark>(.*?)<\/mark>/g, "$1");
+  }
+
+  // 🔁 12. Toggle Word Wrap
+  let wrapEnabled = true;
+  toggleWrapBtn.addEventListener("click", function () {
+    wrapEnabled = !wrapEnabled;
+    if (wrapEnabled) {
+      text.style.whiteSpace = "pre-wrap";
+      toggleWrapBtn.textContent = "🔁 Wrap: ON";
+    } else {
+      text.style.whiteSpace = "pre";
+      toggleWrapBtn.textContent = "🔁 Wrap: OFF";
+    }
+  });
+
+  // initialize wrap label
+  toggleWrapBtn.textContent = "🔁 Wrap: ON";
 });
